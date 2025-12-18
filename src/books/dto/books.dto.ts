@@ -1,3 +1,4 @@
+import { PartialType } from '@nestjs/mapped-types';
 import { IsString, IsArray, ArrayMinSize, IsInt, Min } from 'class-validator';
 
 export class CreateBookDto {
@@ -17,3 +18,5 @@ export class CreateBookDto {
   @Min(1)
   totalStock: number;
 }
+
+export class UpdateBookDto extends PartialType(CreateBookDto) {}

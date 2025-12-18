@@ -1,11 +1,21 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 
 import { BooksService } from './books.service';
-import { CreateBookDto } from './dto/books.dto';
 import { Role } from 'src/generated/prisma/enums';
 import { MockAuthGuard } from 'src/auth/mock-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorator/roles.decorator';
+import { CreateBookDto, UpdateBookDto } from './dto/books.dto';
+import { type AuthenticatedRequest } from 'src/auth/current-user.decorator';
 
 @Controller('books')
 export class BooksController {
@@ -16,5 +26,18 @@ export class BooksController {
   @Roles(Role.ADMIN)
   create(@Body() body: CreateBookDto) {
     return this.booksService.createBook(body);
+  }
+
+  @Get(':id')
+  @UseGuards(MockAuthGuard)
+  getBook(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.booksService.getBookDetail(id, req?.user);
+  }
+
+  @Patch(':id')
+  @UseGuards(MockAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  update(@Param('id') id: string, @Body() body: UpdateBookDto) {
+    return this.booksService.updateBook(id, body);
   }
 }
