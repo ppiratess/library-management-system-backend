@@ -85,4 +85,26 @@ export class BooksService {
       throw new InternalServerErrorException('Failed to update book');
     }
   }
+
+  async deleteBook(bookId: string) {
+    try {
+      await this.prisma.book.delete({
+        where: { id: bookId },
+      });
+
+      return {
+        message: 'Book deleted successfully',
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('Book does not exist');
+      }
+
+      console.error('Error updating book:', error);
+      throw new InternalServerErrorException('Failed to update book');
+    }
+  }
 }

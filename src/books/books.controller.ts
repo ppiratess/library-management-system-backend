@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -39,5 +40,12 @@ export class BooksController {
   @Roles(Role.ADMIN)
   update(@Param('id') id: string, @Body() body: UpdateBookDto) {
     return this.booksService.updateBook(id, body);
+  }
+
+  @Delete(':id')
+  @UseGuards(MockAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  delete(@Param('id') id: string) {
+    return this.booksService.deleteBook(id);
   }
 }
