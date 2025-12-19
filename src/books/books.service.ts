@@ -9,7 +9,7 @@ export class BooksService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createBook(dto: CreateBookDto) {
-    return this.prisma.book.create({
+    const book = await this.prisma.book.create({
       data: {
         ...dto,
         availableStock: dto.totalStock,
@@ -19,9 +19,14 @@ export class BooksService {
         title: true,
       },
     });
+
+    return {
+      message: 'Book creted successfully',
+      data: book,
+    };
   }
 
-  async getBookDetail(bookId: string, user?: User) {
+  async getBookDetail(bookId: string, user?: Pick<User, 'role'>) {
     const isAuthenticated = !!user;
     const isAdmin = user?.role === 'ADMIN';
 
@@ -45,10 +50,15 @@ export class BooksService {
   }
 
   async updateBook(bookId: string, dto: UpdateBookDto) {
-    return this.prisma.book.update({
+    const updatedBook = await this.prisma.book.update({
       where: { id: bookId },
       data: dto,
     });
+
+    return {
+      message: 'Book updated successfully',
+      data: updatedBook,
+    };
   }
 
   async deleteBook(bookId: string) {
