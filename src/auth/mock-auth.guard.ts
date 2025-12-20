@@ -11,6 +11,7 @@ export class MockAuthGuard implements CanActivate {
       role: 'ADMIN',
       email: 'admin@test.com',
       name: 'Mock Admin',
+      password: 'Test@123',
     };
 
     return true;

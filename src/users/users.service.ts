@@ -15,6 +15,7 @@ export class UsersService {
         email: dto.email,
         name: dto.name,
         role: dto.role ?? Role.STUDENT,
+        password: dto.password,
       },
       select: {
         id: true,

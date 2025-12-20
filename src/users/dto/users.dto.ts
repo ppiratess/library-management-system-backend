@@ -22,6 +22,10 @@ export class CreateUserDto {
   @IsEnum(Role)
   @IsOptional()
   role?: Role;
+
+  @IsString()
+  @MinLength(3)
+  password: string;
 }
 
 export class GetUsersQueryDto {

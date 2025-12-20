@@ -16,3 +16,13 @@ export const Role = {
 } as const
 
 export type Role = (typeof Role)[keyof typeof Role]
+
+
+export const RentalStatus = {
+  RENTED: 'RENTED',
+  RETURNED: 'RETURNED',
+  LATE_RETURN: 'LATE_RETURN',
+  EXTENDED: 'EXTENDED'
+} as const
+
+export type RentalStatus = (typeof RentalStatus)[keyof typeof RentalStatus]
