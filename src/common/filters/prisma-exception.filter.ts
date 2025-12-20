@@ -8,19 +8,18 @@ import { Response } from 'express';
 
 import { Prisma } from 'src/generated/prisma/client';
 
-type PrismaErrorCode = Prisma.PrismaClientKnownRequestError['code'];
-
 const PRISMA_ERROR_MAP: Record<
-  PrismaErrorCode,
+  string,
   { status: HttpStatus; message: string }
 > = {
-  P2025: {
-    status: HttpStatus.NOT_FOUND,
-    message: 'Resource not found',
-  },
+  P2025: { status: HttpStatus.NOT_FOUND, message: 'Resource not found' },
   P2002: {
     status: HttpStatus.CONFLICT,
     message: 'Unique constraint violation',
+  },
+  P2003: {
+    status: HttpStatus.BAD_REQUEST,
+    message: 'Invalid reference: Related record not found',
   },
 };
 
