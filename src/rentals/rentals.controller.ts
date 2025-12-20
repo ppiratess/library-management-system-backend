@@ -1,7 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Param, Patch, Post } from '@nestjs/common';
 
 import { RentalsService } from './rentals.service';
-import { CreateBookRentalDto } from './dto/rentals.dto';
+import { CreateBookRentalDto, ReturnBookDto } from './dto/rentals.dto';
 
 @Controller('rentals')
 export class RentalsController {
@@ -10,5 +10,10 @@ export class RentalsController {
   @Post()
   createBookRental(@Body() body: CreateBookRentalDto) {
     return this.rentalService.createBookRental(body);
+  }
+
+  @Patch(':id/return')
+  returnBook(@Param('id') rentalId: string, @Body() body: ReturnBookDto) {
+    return this.rentalService.returnBook(rentalId, body);
   }
 }

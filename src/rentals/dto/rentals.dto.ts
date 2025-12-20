@@ -13,3 +13,8 @@ export class CreateBookRentalDto {
   @IsDateString()
   dueAt: string;
 }
+
+export class ReturnBookDto {
+  @IsDateString()
+  returnedAt: string;
+}
