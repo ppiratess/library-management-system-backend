@@ -21,7 +21,7 @@ export class BooksService {
     });
 
     return {
-      message: 'Book creted successfully',
+      message: 'Book created successfully',
       data: book,
     };
   }

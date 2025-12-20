@@ -1,17 +1,27 @@
+import {
+  IsString,
+  IsInt,
+  Min,
+  Max,
+  IsNotEmpty,
+  IsArray,
+  ArrayMinSize,
+} from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
-import { IsString, IsArray, ArrayMinSize, IsInt, Min } from 'class-validator';
 
 export class CreateBookDto {
   @IsString()
+  @IsNotEmpty()
   title: string;
 
   @IsArray()
-  @ArrayMinSize(1)
   @IsString({ each: true })
+  @ArrayMinSize(1)
   authors: string[];
 
   @IsInt()
-  @Min(0)
+  @Min(1000)
+  @Max(new Date().getFullYear() + 1)
   year: number;
 
   @IsInt()
