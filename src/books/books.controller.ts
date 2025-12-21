@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -16,7 +17,7 @@ import { MockAuthGuard } from 'src/auth/mock-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorator/roles.decorator';
 import { CurrentUser } from 'src/auth/current-user.decorator';
-import { CreateBookDto, UpdateBookDto } from './dto/books.dto';
+import { CreateBookDto, GetBookQueryDto, UpdateBookDto } from './dto/books.dto';
 
 @Controller('books')
 export class BooksController {
@@ -47,5 +48,10 @@ export class BooksController {
   @Roles(Role.ADMIN)
   delete(@Param('id') id: string) {
     return this.booksService.deleteBook(id);
+  }
+
+  @Get()
+  list(@Query() query: GetBookQueryDto) {
+    return this.booksService.getAllBook(query);
   }
 }

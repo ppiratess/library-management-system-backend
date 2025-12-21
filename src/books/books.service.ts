@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from 'src/prisma.service';
-import { User } from 'src/generated/prisma/client';
-import { CreateBookDto, UpdateBookDto } from './dto/books.dto';
+import { Prisma, User } from 'src/generated/prisma/client';
+import { CreateBookDto, GetBookQueryDto, UpdateBookDto } from './dto/books.dto';
 
 @Injectable()
 export class BooksService {
@@ -67,5 +67,46 @@ export class BooksService {
     });
 
     return { message: 'Book deleted successfully' };
+  }
+
+  async getAllBook(query: GetBookQueryDto) {
+    const { page = 1, perPage = 10, search, minStock } = query;
+
+    const skip = (page - 1) * perPage;
+
+    const where: Prisma.BookWhereInput = {
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { authors: { has: search } },
+        ],
+      }),
+
+      ...(minStock !== undefined && {
+        availableStock: {
+          gte: Number(minStock),
+        },
+      }),
+    };
+
+    const [bookList, total] = await Promise.all([
+      this.prisma.book.findMany({
+        skip,
+        take: perPage,
+        where,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.book.count({ where }),
+    ]);
+
+    return {
+      data: bookList,
+      meta: {
+        total,
+        page,
+        perPage,
+        totalPages: Math.ceil(total / perPage),
+      },
+    };
   }
 }

@@ -6,7 +6,11 @@ import {
   IsNotEmpty,
   IsArray,
   ArrayMinSize,
+  IsOptional,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+
+import { ListDto } from 'src/common/dto';
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateBookDto {
@@ -30,3 +34,11 @@ export class CreateBookDto {
 }
 
 export class UpdateBookDto extends PartialType(CreateBookDto) {}
+
+export class GetBookQueryDto extends ListDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  minStock?: number;
+}
