@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { PrismaService } from 'src/prisma.service';
+import { RentalStatus } from 'src/generated/prisma/enums';
 import { CreateBookRentalDto, ReturnBookDto } from './dto/rentals.dto';
 
 @Injectable()
@@ -9,19 +10,12 @@ export class RentalsService {
 
   async createBookRental(data: CreateBookRentalDto) {
     return await this.prisma.$transaction(async (tx) => {
-      await tx.book
-        .update({
-          where: {
-            id: data.bookId,
-            availableStock: { gt: 0 },
-          },
-          data: {
-            availableStock: { decrement: 1 },
-          },
-        })
-        .catch(() => {
-          throw new Error('Book is not available for rental');
-        });
+      const updated = await tx.book.updateMany({
+        where: { id: data.bookId, availableStock: { gt: 0 } },
+        data: { availableStock: { decrement: 1 } },
+      });
+
+      if (updated.count === 0) throw new BadRequestException('Out of stock');
 
       const bookRental = await tx.rental.create({
         data: {
@@ -34,6 +28,7 @@ export class RentalsService {
       });
 
       return {
+        success: true,
         message: 'Rental created successfully',
         data: bookRental,
       };
@@ -73,8 +68,7 @@ export class RentalsService {
           where: { id: rentalId },
           data: {
             returnedAt: returnDate,
-            // If you add a status column to your schema:
-            // status: isLate ? 'RETURNED_LATE' : 'RETURNED'
+            status: isLate ? RentalStatus.LATE_RETURN : RentalStatus.RETURNED,
           },
         }),
         tx.book.update({
