@@ -1,8 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 
+import {
+  CreateBookRentalDto,
+  ExtendRentalDto,
+  ReturnBookDto,
+} from './dto/rentals.dto';
 import { PrismaService } from 'src/prisma.service';
 import { RentalStatus } from 'src/generated/prisma/enums';
-import { CreateBookRentalDto, ReturnBookDto } from './dto/rentals.dto';
 
 @Injectable()
 export class RentalsService {
@@ -86,5 +90,48 @@ export class RentalsService {
         data: updatedRental,
       };
     });
+  }
+
+  async extendRental(rentalId: string, data: ExtendRentalDto) {
+    const rental = await this.prisma.rental.findUnique({
+      where: { id: rentalId },
+    });
+
+    if (!rental) {
+      throw new Error('Rental record not found');
+    }
+
+    if (rental.returnedAt) {
+      throw new Error('Cannot extend a returned rental');
+    }
+
+    if (rental.extended) {
+      throw new Error('Rental has already been extended');
+    }
+
+    const newDueDate = new Date(data.dueAt);
+
+    if (newDueDate <= rental.dueAt) {
+      throw new Error('New due date must be later than current due date');
+    }
+
+    const extendedDays = Math.ceil(
+      (newDueDate.getTime() - rental.dueAt.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
+    const updatedRental = await this.prisma.rental.update({
+      where: { id: rentalId },
+      data: {
+        dueAt: newDueDate,
+        status: RentalStatus.EXTENDED,
+        extended: true,
+        extendedDays,
+      },
+    });
+
+    return {
+      message: 'Rental period extended successfully',
+      data: updatedRental,
+    };
   }
 }

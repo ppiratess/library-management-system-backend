@@ -1,7 +1,11 @@
 import { Body, Controller, Param, Patch, Post } from '@nestjs/common';
 
+import {
+  ReturnBookDto,
+  ExtendRentalDto,
+  CreateBookRentalDto,
+} from './dto/rentals.dto';
 import { RentalsService } from './rentals.service';
-import { CreateBookRentalDto, ReturnBookDto } from './dto/rentals.dto';
 
 @Controller('rentals')
 export class RentalsController {
@@ -15,5 +19,10 @@ export class RentalsController {
   @Patch(':id/return')
   returnBook(@Param('id') rentalId: string, @Body() body: ReturnBookDto) {
     return this.rentalService.returnBook(rentalId, body);
+  }
+
+  @Patch(':id/extend')
+  extendRental(@Param('id') rentalId: string, @Body() body: ExtendRentalDto) {
+    return this.rentalService.extendRental(rentalId, body);
   }
 }
