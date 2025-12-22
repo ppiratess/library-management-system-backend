@@ -3,10 +3,12 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   CreateBookRentalDto,
   ExtendRentalDto,
+  GetRentalQueryDto,
   ReturnBookDto,
 } from './dto/rentals.dto';
 import { PrismaService } from 'src/prisma.service';
 import { RentalStatus } from 'src/generated/prisma/enums';
+import { Prisma } from 'src/generated/prisma/client';
 
 @Injectable()
 export class RentalsService {
@@ -132,6 +134,55 @@ export class RentalsService {
     return {
       message: 'Rental period extended successfully',
       data: updatedRental,
+    };
+  }
+
+  async getRentalById(id: string) {
+    const rental = await this.prisma.rental.findUnique({
+      where: { id },
+    });
+
+    if (!rental) {
+      throw new Error('Rental record not found');
+    }
+
+    return {
+      data: rental,
+    };
+  }
+
+  async getAllRentals(query: GetRentalQueryDto) {
+    const { page = 1, perPage = 10, status, userId } = query;
+
+    const skip = (page - 1) * perPage;
+
+    const where: Prisma.RentalWhereInput = {
+      ...(status && {
+        status: { in: status },
+      }),
+      ...(userId && {
+        userId: { in: userId },
+      }),
+    };
+
+    const [rentalList, total] = await Promise.all([
+      this.prisma.rental.findMany({
+        skip,
+        take: perPage,
+        where,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.rental.count({ where }),
+    ]);
+
+    return {
+      data: rentalList,
+      meta: {
+        total,
+        page,
+        perPage,
+        totalPages: Math.ceil(total / perPage),
+      },
     };
   }
 }
