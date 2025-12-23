@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Role } from 'src/generated/prisma/enums';
 import { PrismaService } from 'src/prisma.service';
 import { Prisma } from 'src/generated/prisma/client';
+import { hashPassword } from 'src/util/password.util';
 import { CreateUserDto, GetUsersQueryDto } from './dto/users.dto';
 
 @Injectable()
@@ -15,7 +16,7 @@ export class UsersService {
         email: dto.email,
         name: dto.name,
         role: dto.role ?? Role.STUDENT,
-        password: dto.password,
+        password: await hashPassword(dto.password),
       },
       select: {
         id: true,
@@ -63,5 +64,12 @@ export class UsersService {
         totalPages: Math.ceil(total / perPage),
       },
     };
+  }
+
+  // this find by is used to perform auth operation
+  async findByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
+    });
   }
 }
