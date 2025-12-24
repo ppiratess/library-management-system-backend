@@ -181,7 +181,6 @@ This project focuses on:
 ## 📈 Future Improvements
 
 - Refresh token support
-- Pagination & search for books
 - Soft deletes
 - Swagger API documentation
 - Unit & integration tests
