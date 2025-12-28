@@ -41,22 +41,44 @@ model User {
   rentals         Rental[]
 }
 
+model Author {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  books     BookAuthor[]
+}
+
+
 model Book {
   id              String   @id @default(uuid()) @db.Uuid
   title           String
   edition         Int?
   year            Int
-  authors         String[]
   totalStock      Int
   availableStock  Int
 
   deletedAt       DateTime?
 
   createdAt       DateTime @default(now())
-  updatedAt       DateTime @default(now()) @updatedAt
+  updatedAt       DateTime @updatedAt
 
   rentals         Rental[]
+  authors         BookAuthor[]
 }
+
+model BookAuthor {
+  bookId   String @db.Uuid
+  authorId String @db.Uuid
+
+  book     Book   @relation(fields: [bookId], references: [id])
+  author   Author @relation(fields: [authorId], references: [id])
+
+  @@id([bookId, authorId])
+  @@index([authorId])
+}
+
 
 model Rental {
   id            String        @id @default(uuid()) @db.Uuid
