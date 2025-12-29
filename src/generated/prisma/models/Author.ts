@@ -187,14 +187,14 @@ export type AuthorOrderByWithRelationInput = {
 
 export type AuthorWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  name?: string
   AND?: Prisma.AuthorWhereInput | Prisma.AuthorWhereInput[]
   OR?: Prisma.AuthorWhereInput[]
   NOT?: Prisma.AuthorWhereInput | Prisma.AuthorWhereInput[]
-  name?: Prisma.StringFilter<"Author"> | string
   createdAt?: Prisma.DateTimeFilter<"Author"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Author"> | Date | string
   books?: Prisma.BookAuthorListRelationFilter
-}, "id">
+}, "id" | "name">
 
 export type AuthorOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
