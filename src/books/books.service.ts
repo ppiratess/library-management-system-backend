@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { PrismaService } from 'src/prisma.service';
 import { Prisma, User } from 'src/generated/prisma/client';
@@ -9,10 +13,27 @@ export class BooksService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createBook(dto: CreateBookDto) {
+    const authorsCount = await this.prisma.author.count({
+      where: { id: { in: dto.authorIds } },
+    });
+
+    if (authorsCount !== dto.authorIds.length) {
+      throw new BadRequestException('One or more authors do not exist');
+    }
+
     const book = await this.prisma.book.create({
       data: {
         ...dto,
         availableStock: dto.totalStock,
+        authors: {
+          create: dto.authorIds.map((authorId) => ({
+            author: {
+              connect: {
+                id: authorId,
+              },
+            },
+          })),
+        },
       },
       select: {
         id: true,
@@ -50,15 +71,52 @@ export class BooksService {
   }
 
   async updateBook(bookId: string, dto: UpdateBookDto) {
-    const updatedBook = await this.prisma.book.update({
-      where: { id: bookId },
-      data: dto,
-    });
+    const { authorIds, totalStock, ...bookData } = dto;
 
-    return {
-      message: 'Book updated successfully',
-      data: updatedBook,
-    };
+    return this.prisma.$transaction(async (tx) => {
+      // Fetch current stock (needed if totalStock changes)
+      const existingBook = await tx.book.findUnique({
+        where: { id: bookId },
+        select: { totalStock: true, availableStock: true },
+      });
+
+      if (!existingBook) {
+        throw new NotFoundException('Book not found');
+      }
+
+      const data: Prisma.BookUpdateInput = {
+        ...bookData,
+      };
+
+      // Handle stock consistency
+      if (totalStock !== undefined) {
+        const diff = totalStock - existingBook.totalStock;
+        data.totalStock = totalStock;
+        data.availableStock = existingBook.availableStock + diff;
+      }
+
+      // Replace authors if provided
+      if (authorIds) {
+        data.authors = {
+          deleteMany: {}, // remove all existing links
+          create: authorIds.map((authorId) => ({
+            author: {
+              connect: { id: authorId },
+            },
+          })),
+        };
+      }
+
+      const updatedBook = await tx.book.update({
+        where: { id: bookId },
+        data,
+      });
+
+      return {
+        message: 'Book updated successfully',
+        data: updatedBook,
+      };
+    });
   }
 
   async deleteBook(bookId: string) {
@@ -78,7 +136,18 @@ export class BooksService {
       ...(search && {
         OR: [
           { title: { contains: search, mode: 'insensitive' } },
-          { authors: { has: search } },
+          {
+            authors: {
+              some: {
+                author: {
+                  name: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            },
+          },
         ],
       }),
 

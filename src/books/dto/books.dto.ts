@@ -7,11 +7,11 @@ import {
   IsArray,
   ArrayMinSize,
   IsOptional,
+  IsUUID,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 import { ListDto } from 'src/common/dto';
-import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateBookDto {
   @IsString()
@@ -31,9 +31,34 @@ export class CreateBookDto {
   @IsInt()
   @Min(1)
   totalStock: number;
+
+  @IsArray()
+  @IsUUID('4', { each: true })
+  @ArrayMinSize(1)
+  authorIds: string[];
 }
 
-export class UpdateBookDto extends PartialType(CreateBookDto) {}
+export class UpdateBookDto {
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1000)
+  @Max(new Date().getFullYear() + 1)
+  year?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  totalStock?: number;
+
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true })
+  authorIds?: string[];
+}
 
 export class GetBookQueryDto extends ListDto {
   @IsOptional()
