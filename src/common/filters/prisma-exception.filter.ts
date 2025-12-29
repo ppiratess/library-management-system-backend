@@ -4,9 +4,13 @@ import {
   ExceptionFilter,
   HttpStatus,
 } from '@nestjs/common';
-import { Response } from 'express';
-
+import { Response, Request } from 'express';
 import { Prisma } from 'src/generated/prisma/client';
+
+type UniqueConstraints = {
+  name?: string;
+  email?: string;
+};
 
 const PRISMA_ERROR_MAP: Record<
   string,
@@ -28,16 +32,27 @@ export class PrismaExceptionFilter implements ExceptionFilter<Prisma.PrismaClien
   catch(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
 
-    const error =
-      PRISMA_ERROR_MAP[exception.code] ??
-      ({
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Database error',
-      } satisfies { status: HttpStatus; message: string });
+    const requestBody: UniqueConstraints = (request?.body ??
+      {}) as UniqueConstraints;
+
+    let errorMessage =
+      PRISMA_ERROR_MAP[exception.code]?.message ?? 'Database error';
+
+    if (exception.code === 'P2002') {
+      const targetField = exception.meta?.target?.[0] as string | undefined;
+      const fieldValue = requestBody?.email ?? requestBody?.name ?? '';
+      errorMessage = `${fieldValue || targetField} already exists`;
+    }
+
+    const error = PRISMA_ERROR_MAP[exception.code] ?? {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: errorMessage,
+    };
 
     return response.status(error.status).json({
-      message: error.message,
+      message: errorMessage,
     });
   }
 }
