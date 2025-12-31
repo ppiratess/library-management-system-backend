@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 
 import { PrismaService } from 'src/prisma.service';
+import { BOOKS_RAW_QUERY } from './queries/book.queries';
 import { Prisma, User } from 'src/generated/prisma/client';
 import { CreateBookDto, GetBookQueryDto, UpdateBookDto } from './dto/books.dto';
 
@@ -13,33 +14,18 @@ export class BooksService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createBook(dto: CreateBookDto) {
+    const { authorIds } = dto;
+
     const authorsCount = await this.prisma.author.count({
-      where: { id: { in: dto.authorIds } },
+      where: { id: { in: authorIds } },
     });
 
-    if (authorsCount !== dto.authorIds.length) {
+    if (authorsCount !== authorIds.length) {
       throw new BadRequestException('One or more authors do not exist');
     }
 
-    const book = await this.prisma.book.create({
-      data: {
-        ...dto,
-        availableStock: dto.totalStock,
-        authors: {
-          create: dto.authorIds.map((authorId) => ({
-            author: {
-              connect: {
-                id: authorId,
-              },
-            },
-          })),
-        },
-      },
-      select: {
-        id: true,
-        title: true,
-      },
-    });
+    const book = await this.prisma
+      .$queryRaw`${BOOKS_RAW_QUERY.createBook(dto)}`;
 
     return {
       message: 'Book created successfully',

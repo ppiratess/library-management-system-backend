@@ -18,11 +18,6 @@ export class CreateBookDto {
   @IsNotEmpty()
   title: string;
 
-  @IsArray()
-  @IsString({ each: true })
-  @ArrayMinSize(1)
-  authors: string[];
-
   @IsInt()
   @Min(1000)
   @Max(new Date().getFullYear() + 1)
