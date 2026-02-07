@@ -1,37 +1,40 @@
-# 📚 Library Management System
+# Library Management System
 
 A backend-focused **Library Management System** built to practice and apply real-world backend concepts such as authentication, authorization, database design, and transactional operations.
 
 ---
 
-## ✨ Features
+## Features
 
-- 👤 **User Management**
+- **User Management**
   - User registration and login
   - Role-based access control (Admin / User)
 
-- 🔐 **Authentication & Authorization**
+- **Authentication & Authorization**
   - JWT-based authentication
   - Protected routes using Guards
   - Role-based permissions using custom `RolesGuard`
 
-- 📖 **Book Management**
+- **Book Management**
   - Add, update, delete, and list books
   - Admin-only access for book creation and deletion
 
-- 📦 **Rental Management**
+- **Rental Management**
   - Rent books
   - Return books
   - Extend rental due dates
   - Rental status tracking (e.g. RENTED, RETURNED)
 
-- 🧾 **Validation & Error Handling**
+- **Validation & Error Handling**
   - DTO-based request validation
   - Centralized exception handling
 
+- **API Documentation**
+  - Swagger UI enabled for API exploration
+
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Framework:** NestJS
 - **Language:** TypeScript
@@ -42,7 +45,7 @@ A backend-focused **Library Management System** built to practice and apply real
 
 ---
 
-## 🗂 Project Structure (Simplified)
+## Project Structure (Simplified)
 
 ```
 src/
@@ -50,33 +53,33 @@ src/
 ├── users/       # User management
 ├── books/       # Book CRUD operations
 ├── rentals/     # Rental & return logic
-├── prisma/      # Prisma schema & migrations
+├── prisma/      # Prisma schema, migrations, and seed data
 └── common/      # Guards, decorators, enums
 ```
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 You can run the project **either locally or using Docker**.
 
 ---
 
-## 🐳 Setup Using Docker (Recommended)
+## Setup Using Docker (Recommended)
 
-### 1️⃣ Prerequisites
+### Prerequisites
 
 - Docker
 - Docker Compose
 
-### 2️⃣ Clone the repository
+### Clone the repository
 
 ```bash
 git clone <repo-url>
 cd library-management
 ```
 
-### 3️⃣ Environment variables
+### Environment variables
 
 Create a `.env` file in the root directory:
 
@@ -87,19 +90,27 @@ JWT_SECRET=your_jwt_secret
 
 > `db` is the service name defined in `docker-compose.yml`
 
-### 4️⃣ Run with Docker Compose
+### Run with Docker Compose
 
 ```bash
 docker-compose up --build
+# or
+./start-docker.sh
 ```
 
-This will:
+`start-docker.sh` will:
 
-- Start PostgreSQL
-- Run Prisma migrations
-- Start the NestJS application
+- Start all Docker services
+- Start the NestJS server
+- Automatically follow logs using:
 
-### 5️⃣ Access the application
+```bash
+docker logs -f library_management_api
+```
+
+This improves local development DX by keeping server logs visible.
+
+### Access the application
 
 ```
 http://localhost:3000
@@ -107,15 +118,58 @@ http://localhost:3000
 
 ---
 
-## 🧑‍💻 Local Setup (Without Docker)
+## Database Seeding
 
-### 1️⃣ Install dependencies
+### Seed users
+
+A raw list of users is maintained in:
+
+```
+prisma/seed-data/
+```
+
+To seed users into the database, run:
+
+```bash
+./seed-user.sh
+```
+
+This script uses Prisma to populate the database with predefined users for local development and testing.
+
+---
+
+## Swagger API Documentation
+
+Swagger is enabled for this project.
+
+Once the server is running, access the Swagger UI at:
+
+```
+http://localhost:3000/api
+```
+
+Notes:
+
+- APIs use raw JWTs (no `Bearer` prefix)
+- If an endpoint requires authentication, provide the JWT accordingly (e.g. via headers or cookies, depending on the endpoint)
+
+You can:
+
+- Explore all available endpoints
+- View request and response schemas
+- Test APIs directly from the browser
+
+---
+
+## Local Setup (Without Docker)
+
+### Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2️⃣ Setup environment variables
+### Setup environment variables
 
 Create a `.env` file:
 
@@ -124,14 +178,14 @@ DATABASE_URL=postgresql://user:password@localhost:5432/library
 JWT_SECRET=your_jwt_secret
 ```
 
-### 3️⃣ Setup database
+### Setup database
 
 ```bash
 npx prisma migrate dev
 npx prisma generate
 ```
 
-### 4️⃣ Run the application
+### Run the application
 
 ```bash
 npm run start:dev
@@ -145,28 +199,31 @@ http://localhost:3000
 
 ---
 
-## 🔑 Authentication Flow
+## Authentication Flow
 
 1. User logs in using `/auth/login`
-2. Server returns a JWT token
-3. Token must be sent in headers:
+2. Server returns a JWT
+3. JWT is sent directly with requests (not using the `Bearer` scheme)
+
+Example:
 
 ```
-Authorization: Bearer <token>
+Authorization: <jwt>
 ```
 
-4. Guards validate token & user roles
+4. Guards validate the JWT and user roles
 
 ---
 
-## 🧪 API Testing
+## API Testing
 
 - Tested using **Postman**
-- Supports query parameters for pagination & filtering
+- Supports query parameters for pagination and filtering
+- Swagger can also be used for manual testing
 
 ---
 
-## 📌 Learning Goals
+## Learning Goals
 
 This project focuses on:
 
@@ -178,10 +235,9 @@ This project focuses on:
 
 ---
 
-## 📈 Future Improvements
+## Future Improvements
 
 - Refresh token support
 - Soft deletes
-- Swagger API documentation
-- Unit & integration tests
-- Registration approvals for new users - students
+- Unit and integration tests
+- Registration approvals for new users (students)
