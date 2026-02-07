@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 import { BooksService } from './books.service';
 import { Role } from 'src/generated/prisma/enums';
@@ -24,6 +25,7 @@ export class BooksController {
   constructor(private readonly booksService: BooksService) {}
 
   @Post()
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   create(@Body() body: CreateBookDto) {
@@ -31,12 +33,12 @@ export class BooksController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   getBook(@Param('id') id: string, @CurrentUser() user?: User) {
     return this.booksService.getBookDetail(id, user);
   }
 
   @Patch(':id')
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   update(@Param('id') id: string, @Body() body: UpdateBookDto) {
@@ -44,6 +46,7 @@ export class BooksController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   delete(@Param('id') id: string) {

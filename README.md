@@ -184,3 +184,4 @@ This project focuses on:
 - Soft deletes
 - Swagger API documentation
 - Unit & integration tests
+- Registration approvals for new users - students
